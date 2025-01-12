@@ -13,6 +13,10 @@
    ```bash
    composer install
    ```
+3. Initialiser la base de données
+```bash
+   php scripts/init_db.php
+```
 
 ## Vérifier l'installation de l'extension MongoDB :
 ```
