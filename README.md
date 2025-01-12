@@ -27,3 +27,8 @@ Configuration FileZilla :
 -Identifiant : projetwewv-licenceXX (XX = numéro fourni sur Moodle)
 -Mot de passe : (fourni par le professeur)
 -Port : 21
+
+## Url du projet
+```
+https://www.projet-web-training.ovh/licence22/planning-devoir/planning/
+```
