@@ -13,7 +13,12 @@
    ```bash
    composer install
    ```
-3. Initialiser la base de données
+3. Configurer le fichier `.env` avec les informations de connexion à la base de données
+```bash
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
+   ```
+   Modifier le fichier .env avec vos identifiants MongoDBModifier le fichier .env avec vos identifiants MongoDB
+4. Initialiser la base de données
 ```bash
    php scripts/init_db.php
 ```
@@ -36,3 +41,4 @@ Configuration FileZilla :
 ```
 https://www.projet-web-training.ovh/licence22/planning-devoir/planning/
 ```
+
