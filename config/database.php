@@ -1,18 +1,13 @@
 <?php
-class Database {
-    private $client;
-    private $db;
+require_once __DIR__ . '/../vendor/autoload.php';
 
-    public function __construct() {
-        try {
-            $this->client = new MongoDB\Client("mongodb://localhost:27017");
-            $this->db = $this->client->planning_patates;
-        } catch(Exception $e) {
-            die("Erreur de connexion MongoDB : " . $e->getMessage());
-        }
-    }
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
 
-    public function getDb() {
-        return $this->db;
-    }
+try {
+    $client = new MongoDB\Client($uri);
+    $db = $client->planning; // nom de votre base
+} catch(Exception $e) {
+    die("Erreur de connexion : " . $e->getMessage());
 }
+?>
