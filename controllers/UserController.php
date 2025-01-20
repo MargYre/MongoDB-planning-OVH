@@ -1,25 +1,35 @@
 <?php
 class UserController {
     private $db;
+    private $error;
 
     public function __construct($database) {
         $this->db = $database->getDb();
+        $this->error = null;
     }
 
+    // Ajout de la méthode login manquante
     public function login() {
-        require 'views/login.php';
+        $error = null;
+        if (isset($_GET['error']) && $_GET['error'] === 'auth_required') {
+            $error = "Vous devez être connecté pour accéder au planning";
+        }
+        // Afficher le formulaire de connexion
+        require ROOT_PATH . '/views/login.php';
     }
 
+    // Méthode pour authentifier l'utilisateur
     public function authenticate($username, $password) {
         $collection = $this->db->users;
-        $user = $collection->findOne(['name' => $username]);
+        $user = $collection->findOne(['username' => $username]);
         
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = (string)$user['_id'];
-            $_SESSION['username'] = $user['name'];
-            $_SESSION['color'] = $user['color'];
+            $_SESSION['username'] = $user['username'];
             return true;
         }
+        
+        $this->error = "Identifiants incorrects";
         return false;
     }
 
@@ -27,49 +37,5 @@ class UserController {
         session_destroy();
         header('Location: index.php');
         exit();
-    }
-
-    public function displayProfile() {
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: index.php?action=login');
-            exit();
-        }
-
-        $usersCollection = $this->db->users;
-        $user = $usersCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])]);
-        
-        require 'views/profile.php';
-    }
-
-    public function updateProfile($data) {
-        if (!isset($_SESSION['user_id'])) {
-            return false;
-        }
-
-        $usersCollection = $this->db->users;
-        $updateData = [
-            'color' => $data['color'] ?? $_SESSION['color']
-        ];
-
-        // Si un nouveau mot de passe est fourni
-        if (!empty($data['new_password'])) {
-            if (password_verify($data['current_password'], $user['password'])) {
-                $updateData['password'] = password_hash($data['new_password'], PASSWORD_DEFAULT);
-            } else {
-                return false;
-            }
-        }
-
-        $result = $usersCollection->updateOne(
-            ['_id' => new MongoDB\BSON\ObjectId($_SESSION['user_id'])],
-            ['$set' => $updateData]
-        );
-
-        if ($result->getModifiedCount() > 0) {
-            $_SESSION['color'] = $updateData['color'];
-            return true;
-        }
-
-        return false;
     }
 }

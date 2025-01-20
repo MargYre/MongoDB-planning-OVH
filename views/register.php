@@ -26,11 +26,6 @@
                 <input type="password" id="password" name="password" required>
             </div>
             
-            <div class="form-group">
-                <label for="color">Votre couleur:</label>
-                <input type="color" id="color" name="color" required>
-            </div>
-            
             <button type="submit" class="btn-primary">S'inscrire</button>
         </form>
         

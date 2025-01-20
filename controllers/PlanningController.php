@@ -7,86 +7,187 @@ class PlanningController {
     }
 
     public function display() {
-        // Récupérer les données du planning depuis MongoDB
-        $weeksCollection = $this->db->weeks;
-        $currentYear = isset($_GET['year']) ? intval($_GET['year']) : 2025;
+        // Récupérer l'année sélectionnée (par défaut année courante)
+        $selectedYear = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
         
-        // Récupérer toutes les semaines pour l'année en cours
-        $weeks = $weeksCollection->find(['year' => $currentYear]);
-        $weekAssignments = [];
+        // Récupérer les années disponibles
+        $years = $this->getAvailableYears();
         
-        // Organiser les données par numéro de semaine
-        foreach ($weeks as $week) {
-            $weekAssignments[$week->num_week] = [
-                'user_id' => $week->user_id,
-                'start_date' => $week->start_date
+        // Récupérer le planning de l'année
+        $planning = $this->getYearlyPlanning($selectedYear);
+        
+        // Récupérer les statistiques
+        $stats = $this->getStats($selectedYear);
+        
+        // Récupérer la liste des utilisateurs avec leurs couleurs
+        $users = $this->getUsers();
+        
+        // Charger la vue
+        require ROOT_PATH . '/views/planning.php';
+    }
+
+    private function getAvailableYears() {
+        $pipeline = [
+            ['$group' => ['_id' => '$year']],
+            ['$sort' => ['_id' => 1]]
+        ];
+        
+        $years = [];
+        $cursor = $this->db->planning->aggregate($pipeline);
+        foreach ($cursor as $document) {
+            $years[] = $document->_id;
+        }
+        return $years;
+    }
+
+    private function getYearlyPlanning($year) {
+        $cursor = $this->db->planning->find(
+            ['year' => (int)$year],
+            [
+                'sort' => ['date' => 1],
+                'projection' => [
+                    'date' => 1,
+                    'week' => 1,
+                    'username' => 1,
+                    'user_id' => 1
+                ]
+            ]
+        );
+        
+        $planning = [];
+        foreach ($cursor as $document) {
+            $planning[] = [
+                'date' => $document['date']->toDateTime(),
+                'week' => $document['week'],
+                'username' => $document['username'],
+                'user_id' => $document['user_id']
             ];
         }
-        
-        // Calculer les statistiques
-        $stats = $this->calculateStats($currentYear);
-        
-        // Passer les données à la vue
-        $viewData = [
-            'weekAssignments' => $weekAssignments,
-            'currentYear' => $currentYear,
-            'stats' => $stats
-        ];
-        
-        require 'views/planning.php';
+        return $planning;
     }
 
-    public function update() {
-        if (!isset($_SESSION['user_id'])) {
-            return false;
-        }
-
-        $weeksCollection = $this->db->weeks;
-        $year = intval($_POST['year']);
-        $updates = [];
-
-        foreach ($_POST as $key => $value) {
-            if (strpos($key, 'week_') === 0) {
-                $weekNum = intval(substr($key, 5));
-                
-                // Mettre à jour ou créer l'assignation
-                $weeksCollection->updateOne(
-                    [
-                        'year' => $year,
-                        'num_week' => $weekNum
-                    ],
-                    [
-                        '$set' => [
-                            'user_id' => $value,
-                            'last_updated' => new MongoDB\BSON\UTCDateTime(),
-                            'updated_by' => $_SESSION['user_id']
-                        ]
-                    ],
-                    ['upsert' => true]
-                );
-            }
-        }
-
-        return true;
-    }
-
-    private function calculateStats($year) {
-        $weeksCollection = $this->db->weeks;
+    public function getStats($year) {
         $pipeline = [
-            ['$match' => ['year' => $year]],
+            ['$match' => ['year' => (int)$year]],
             ['$group' => [
-                '_id' => '$user_id',
+                '_id' => '$username',
                 'count' => ['$sum' => 1]
-            ]]
+            ]],
+            ['$sort' => ['count' => 1]]
         ];
-
+        
         $stats = [];
-        $results = $weeksCollection->aggregate($pipeline);
+        $cursor = $this->db->planning->aggregate($pipeline);
+        foreach ($cursor as $document) {
+            $stats[] = [
+                'username' => $document->_id,
+                'count' => $document->count
+            ];
+        }
+        return $stats;
+    }
 
-        foreach ($results as $result) {
-            $stats[$result->_id] = $result->count;
+    private function getUsers() {
+        $cursor = $this->db->users->find(
+            [],
+            ['projection' => ['username' => 1, 'color' => 1]]
+        );
+        
+        $users = [];
+        foreach ($cursor as $document) {
+            $users[$document['username']] = [
+                'id' => (string)$document['_id'],
+                'color' => $document['color']
+            ];
+        }
+        return $users;
+    }
+
+    public function update($postData) {
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            return ['error' => 'Non autorisé'];
         }
 
-        return $stats;
+        try {
+            $week = (int)$postData['week'];
+            $year = (int)$postData['year'];
+            $userId = new MongoDB\BSON\ObjectId($postData['user_id']);
+            
+            // Récupérer les informations de l'utilisateur
+            $user = $this->db->users->findOne(['_id' => $userId]);
+            if (!$user) {
+                throw new Exception('Utilisateur non trouvé');
+            }
+
+            // Mettre à jour le planning
+            $result = $this->db->planning->updateOne(
+                [
+                    'year' => $year,
+                    'week' => $week
+                ],
+                [
+                    '$set' => [
+                        'user_id' => $userId,
+                        'username' => $user['username']
+                    ]
+                ]
+            );
+
+            if ($result->getModifiedCount() > 0) {
+                return ['success' => true];
+            } else {
+                throw new Exception('Aucune modification effectuée');
+            }
+
+        } catch (Exception $e) {
+            error_log("Erreur mise à jour planning : " . $e->getMessage());
+            http_response_code(500);
+            return ['error' => 'Erreur lors de la mise à jour'];
+        }
+    }
+
+    public function generateYearlyPlanning($year) {
+        try {
+            // Récupérer tous les utilisateurs
+            $users = iterator_to_array($this->db->users->find());
+            if (empty($users)) {
+                throw new Exception('Aucun utilisateur trouvé');
+            }
+
+            $userCount = count($users);
+            $userIndex = 0;
+            $planning = [];
+
+            // Générer le planning pour chaque semaine
+            $date = new DateTime($year . '-01-01');
+            $date->modify('next sunday'); // Commencer au premier dimanche
+
+            for ($week = 1; $week <= 52; $week++) {
+                $user = $users[$userIndex];
+                $planning[] = [
+                    'year' => (int)$year,
+                    'week' => $week,
+                    'date' => new MongoDB\BSON\UTCDateTime($date->getTimestamp() * 1000),
+                    'user_id' => $user['_id'],
+                    'username' => $user['username']
+                ];
+
+                $date->modify('+1 week');
+                $userIndex = ($userIndex + 1) % $userCount;
+            }
+
+            // Supprimer l'ancien planning de l'année
+            $this->db->planning->deleteMany(['year' => (int)$year]);
+
+            // Insérer le nouveau planning
+            $this->db->planning->insertMany($planning);
+
+            return ['success' => true, 'message' => 'Planning généré avec succès'];
+
+        } catch (Exception $e) {
+            error_log("Erreur génération planning : " . $e->getMessage());
+            return ['error' => 'Erreur lors de la génération du planning'];
+        }
     }
 }
