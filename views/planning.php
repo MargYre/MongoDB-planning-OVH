@@ -47,8 +47,10 @@
                         <td>
                             <?php if (isset($_SESSION['user_id'])): ?>
                                 <select class="user-dropdown" 
-                                        onchange="updatePlanning(<?= $week['week'] ?>, <?= $selectedYear ?>, this.value)"
-                                        style="background-color: <?= $users[$week['username']]['color'] ?? '#ffffff' ?>">
+                                        data-week="<?= $week['week'] ?>"
+                                        data-year="<?= $selectedYear ?>"
+                                        data-previous-value="<?= $user['id'] ?>"
+                                        onchange="planningManager.updatePlanning(this.dataset.week, this.dataset.year, this.value)">
                                     <?php foreach ($users as $username => $user): ?>
                                         <option value="<?= $user['id'] ?>" 
                                                 <?= $week['username'] === $username ? 'selected' : '' ?>
@@ -107,6 +109,7 @@
         });
     }
     </script>
+    <script src="../public/js/planning.js"></script>
     <?php endif; ?>
 </body>
 </html>
