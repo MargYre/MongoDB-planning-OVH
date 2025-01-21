@@ -1,0 +1,138 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    padding: 0;
+    background-color: #f0f2f5;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Styles pour le header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Styles pour le sélecteur d'année */
+.year-selector {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.year-selector select {
+    padding: 5px;
+    font-size: 16px;
+}
+
+/* Styles pour les boutons d'authentification */
+.auth-buttons {
+    margin-left: auto;
+    padding: 8px 15px;
+}
+
+.btn-login {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.btn-logout {
+    padding: 8px 15px;
+    background-color: #ff4444;
+    color: white;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.user-info {
+    margin-right: 15px;
+    color: #666;
+}
+
+/* Styles pour le tableau de planning */
+.planning-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.planning-table th,
+.planning-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.planning-table th {
+    background-color: #f4f4f4;
+}
+
+.user-dropdown {
+    padding: 5px;
+    margin: 5px;
+}
+
+/* Styles pour les statistiques */
+.stats {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.stats h2 {
+    margin-top: 0;
+}
+
+/* Styles pour la page de connexion */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}

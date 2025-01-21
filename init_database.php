@@ -21,24 +21,36 @@ try {
     $result = $db->users->insertMany($users);
     echo "Utilisateurs créés avec succès : " . $result->getInsertedCount() . " utilisateurs insérés\n";
 
-    // Générer le planning pour 2025
+    // Générer le planning pour 2021-2025
     $planning = [];
-    $date = new DateTime('2025-01-05'); // Premier dimanche de 2025
+    $date = new DateTime('2021-01-03'); // Premier dimanche de 2021
     $userCount = count($users);
     $userIndex = 0;
 
-    for ($week = 1; $week <= 52; $week++) {
-        $user = $users[$userIndex];
-        $planning[] = [
-            'year' => 2025,
-            'week' => $week,
-            'date' => new MongoDB\BSON\UTCDateTime($date->getTimestamp() * 1000),
-            'user_id' => $result->getInsertedIds()[$userIndex],
-            'username' => $user['username']
-        ];
-        
-        $date->modify('+1 week');
-        $userIndex = ($userIndex + 1) % $userCount;
+    // Boucle sur les années de 2021 à 2025
+    for ($year = 2021; $year <= 2025; $year++) {
+        // Trouver le premier dimanche de l'année
+        if ($year > 2021) {
+            $date = new DateTime($year . '-01-01');
+            while ($date->format('w') != 0) { // 0 = dimanche
+                $date->modify('+1 day');
+            }
+        }
+
+        // Générer les semaines pour l'année courante
+        for ($week = 1; $week <= 52; $week++) {
+            $user = $users[$userIndex];
+            $planning[] = [
+                'year' => $year,
+                'week' => $week,
+                'date' => new MongoDB\BSON\UTCDateTime($date->getTimestamp() * 1000),
+                'user_id' => $result->getInsertedIds()[$userIndex],
+                'username' => $user['username']
+            ];
+            
+            $date->modify('+1 week');
+            $userIndex = ($userIndex + 1) % $userCount;
+        }
     }
 
     // Supprimer l'ancien planning s'il existe

@@ -4,31 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning des corvées d'épluchage</title>
-    <style>
-        /* ... Styles existants ... */
-        .auth-buttons {
-            margin-left: auto;
-            padding: 8px 15px;
-        }
-        .btn-login {
-            padding: 8px 15px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border-radius: 3px;
-        }
-        .btn-logout {
-            padding: 8px 15px;
-            background-color: #ff4444;
-            color: white;
-            text-decoration: none;
-            border-radius: 3px;
-        }
-        .user-info {
-            margin-right: 15px;
-            color: #666;
-        }
-    </style>
+    <link rel="stylesheet" href="../public/css/styles.css">
+</head>
 </head>
 <body>
     <div class="container">

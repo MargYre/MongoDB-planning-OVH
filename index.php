@@ -23,7 +23,10 @@ switch($action) {
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
             if ($userController->authenticate($username, $password)) {
-                header('Location: index.php');
+                // Redirection vers la page précédente si elle existe
+                $redirect = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : 'index.php';
+                unset($_SESSION['redirect_after_login']);
+                header('Location: ' . $redirect);
                 exit;
             }
         }
@@ -34,16 +37,13 @@ switch($action) {
         break;
     case 'update_planning':
         if (!isset($_SESSION['user_id'])) {
+            $_SESSION['redirect_after_login'] = $_SERVER['HTTP_REFERER'] ?? 'index.php';
             header('Location: index.php?action=login&error=auth_required');
             exit;
         }
         $planningController->update($_POST);
         break;
     default:
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: index.php?action=login');
-            exit;
-        }
         $planningController->display();
         break;
 }
