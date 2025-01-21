@@ -5,79 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning des corvées d'épluchage</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
+        /* ... Styles existants ... */
+        .auth-buttons {
+            margin-left: auto;
+            padding: 8px 15px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .year-selector {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .year-selector select {
-            padding: 5px;
-            font-size: 16px;
-        }
-
-        .planning-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-
-        .planning-table th,
-        .planning-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .planning-table th {
-            background-color: #f4f4f4;
-        }
-
-        .user-cell {
-            cursor: pointer;
-            padding: 5px;
+        .btn-login {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
             border-radius: 3px;
         }
-
-        .stats {
-            background-color: #f4f4f4;
-            padding: 20px;
-            border-radius: 5px;
-        }
-
-        .stats h2 {
-            margin-top: 0;
-        }
-
-        .logout {
+        .btn-logout {
             padding: 8px 15px;
             background-color: #ff4444;
             color: white;
             text-decoration: none;
             border-radius: 3px;
         }
-
-        .user-dropdown {
-            padding: 5px;
-            margin: 5px;
+        .user-info {
+            margin-right: 15px;
+            color: #666;
         }
     </style>
 </head>
@@ -95,7 +44,14 @@
                     <?php endforeach; ?>
                 </select>
             </div>
-            <a href="index.php?action=logout" class="logout">Déconnexion</a>
+            <div class="auth-buttons">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <span class="user-info">Connecté en tant que <?php echo htmlspecialchars($_SESSION['username']); ?></span>
+                    <a href="index.php?action=logout" class="btn-logout">Déconnexion</a>
+                <?php else: ?>
+                    <a href="index.php?action=login" class="btn-login">Se connecter</a>
+                <?php endif; ?>
+            </div>
         </div>
 
         <table class="planning-table">
@@ -112,17 +68,23 @@
                         <td><?= $week['week'] ?></td>
                         <td><?= $week['date']->format('d/m/Y') ?></td>
                         <td>
-                            <select class="user-dropdown" 
-                                    onchange="updatePlanning(<?= $week['week'] ?>, <?= $selectedYear ?>, this.value)"
-                                    style="background-color: <?= $users[$week['username']]['color'] ?? '#ffffff' ?>">
-                                <?php foreach ($users as $username => $user): ?>
-                                    <option value="<?= $user['id'] ?>" 
-                                            <?= $week['username'] === $username ? 'selected' : '' ?>
-                                            style="background-color: <?= $user['color'] ?>">
-                                        <?= htmlspecialchars($username) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <?php if (isset($_SESSION['user_id'])): ?>
+                                <select class="user-dropdown" 
+                                        onchange="updatePlanning(<?= $week['week'] ?>, <?= $selectedYear ?>, this.value)"
+                                        style="background-color: <?= $users[$week['username']]['color'] ?? '#ffffff' ?>">
+                                    <?php foreach ($users as $username => $user): ?>
+                                        <option value="<?= $user['id'] ?>" 
+                                                <?= $week['username'] === $username ? 'selected' : '' ?>
+                                                style="background-color: <?= $user['color'] ?>">
+                                            <?= htmlspecialchars($username) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php else: ?>
+                                <span style="color: <?= $users[$week['username']]['color'] ?? 'black' ?>">
+                                    <?= htmlspecialchars($week['username']) ?>
+                                </span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -143,6 +105,7 @@
         </div>
     </div>
 
+    <?php if (isset($_SESSION['user_id'])): ?>
     <script>
     function updatePlanning(week, year, userId) {
         fetch('index.php?action=update_planning', {
@@ -167,5 +130,6 @@
         });
     }
     </script>
+    <?php endif; ?>
 </body>
 </html>
