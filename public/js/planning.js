@@ -26,7 +26,7 @@ class PlanningManager {
             console.log('Envoi de la requête:', {week, year, userId});
             const response = await this.sendUpdateRequest(week, year, userId);
             console.log('Réponse brute:', responseBody);
-            
+
             await this.handleResponse(response, select);
         } catch (error) {
             console.error('Détails de l\'erreur:', {
@@ -63,13 +63,13 @@ class PlanningManager {
     async sendUpdateRequest(week, year, userId) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.requestTimeout);
-
+    
         try {
             const formData = new URLSearchParams();
             formData.append('week', week);
             formData.append('year', year);
             formData.append('user_id', userId);
-
+    
             const response = await fetch(`${this.baseUrl}?action=update_planning`, {
                 method: 'POST',
                 headers: {
@@ -79,23 +79,17 @@ class PlanningManager {
                 body: formData,
                 signal: controller.signal
             });
-
+    
             clearTimeout(timeoutId);
-
-            const responseBody = await response.text();
-            let data;
-            try {
-                data = JSON.parse(responseBody);
-            } catch (e) {
-                console.error('Réponse non JSON:', responseBody);
-                throw new Error('Réponse invalide du serveur');
-            }
-
+    
             if (!response.ok) {
-                throw new Error(`Erreur HTTP ${response.status}: ${data.error || 'Erreur inconnue'}`);
+                const errorData = await response.json();
+                throw new Error(`Erreur HTTP ${response.status}: ${errorData.error || 'Erreur inconnue'}`);
             }
-
+    
+            const data = await response.json();
             return data;
+    
         } catch (error) {
             if (error.name === 'AbortError') {
                 throw new Error('La requête a pris trop de temps');
